@@ -4,7 +4,9 @@
 
 ## Requirements
 
-- NixOS or Nix package manager
+- NixOS or Nix package manager - This configuration uses nix with flake as command launcher
+- Join to tailscale network - The test fediverse network build on tailscale
+- Can access to endpoint by HTTPS - In my case, I uses Let's Encrypt certificates
 
 ## Directory structure
 
