@@ -3,4 +3,5 @@
 !bin
 !data
 !.gitignore
+!*.md
 !*.yaml
