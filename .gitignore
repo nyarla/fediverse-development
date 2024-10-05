@@ -1,9 +1,3 @@
 *
-!app
-!bin
-!data
 !.gitignore
-!flake.lock
-!*.md
-!*.nix
-!*.yaml
+
