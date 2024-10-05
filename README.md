@@ -85,9 +85,9 @@ In this configuration, use `sqlite3` as db, and store media files to local dir
 $ cd app
 $ git clone https://github.com/superseriousbusiness/gotosocial gotosocial
 
-# Edit `data/gotosocial/env` file.
-# This repository set all gotosocial settings by environment variables.
-$ nvim data/gotosocial/env
+# Edit `data/gotosocial/config.yaml` file.
+# In this environment, configure gotosocial by `config.yaml`
+$ nvim data/gotosocial/config.yaml
 
 # Launch by `process-compose`
 $ process-compose -e data/gotosocial/env -f gotosocial.yaml
