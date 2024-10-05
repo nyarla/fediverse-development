@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+appname="${1:-}"
+shift
+
+if [[ "${appname:-}" == "" ]]; then
+  echo "Usage: bin/run [appname] <args>" >&2
+  exit 1
+fi
+
+set -o allexport
+test ! -e data/${appname}/env || source data/${appname}/env
+set +o allexport
+
+exec "${@:-}"

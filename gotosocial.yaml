@@ -1,0 +1,21 @@
+version: "0.5"
+is_strict: true
+
+processes:
+  build:
+    working_dir: "app/gotosocial"
+    command: |
+      set -euo pipefail
+
+      if test "z$(git status --short)" != "z" || test ! -e gotosocial ; then
+        VERSION=kalaclista-dev ./scripts/build.sh
+      fi
+
+      exit 0
+
+  app:
+    working_dir: .
+    depends_on:
+      build:
+        condition: process_completed_successfully
+    command: "app/gotosocial/gotosocial --config-path data/gotosocial/config.yaml server start"
