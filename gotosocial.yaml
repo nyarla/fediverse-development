@@ -18,4 +18,4 @@ processes:
     depends_on:
       build:
         condition: process_completed_successfully
-    command: "app/gotosocial/gotosocial server start"
+    command: "app/gotosocial/gotosocial --config-path data/gotosocial/config.yaml server start"
