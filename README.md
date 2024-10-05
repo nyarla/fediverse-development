@@ -1,30 +1,84 @@
 # fediverse-development
 
-- The development environment for fediverse softwares
+> My development environment for fediverse softwares
 
-## Requirements
+## Using environment, networking and configurations
 
-- NixOS or Nix package manager - This configuration uses nix with flake as command launcher
-- Join to tailscale network - The test fediverse network build on tailscale
-- Can access to endpoint by HTTPS - In my case, I uses Let's Encrypt certificates
+- NixOS, Let's Encrypt by `security.acme` and caddyserver configuration
+- Tailscaled and my localhost domain for development. this is `*.f.localhost.thotep.net`
+
+I use these NixOS configurations to setup this environment:
+
+```nix
+{ pkgs, ... }: {
+  security.acme = {
+    acceptTerms = true;
+    defaults = {
+      enableDebugLogs = false;
+      email = "nyarla@kalaclista.com";
+      dnsProvider = "cloudflare";
+      dnsResolver = "1.1.1.1:53";
+      environmentFile = "/persist/var/lib/acme/cloudflare";
+    };
+
+    certs."localhost.thotep.net" = {
+      extraDomainNames = [
+        "*.localhost.thotep.net"
+        "*.f.localhost.thotep.net"
+      ];
+    };
+  };
+
+  services.caddy = {
+    enable = true;
+    virtualHosts = {
+      "gts.f.localhost.thotep.net" = {
+        listenAddresses = [ "100.103.65.77" ];
+        useACMEHost = "localhost.thotep.net";
+        logFormat = ''
+          output stdout
+        '';
+        extraConfig = ''
+          reverse_proxy 127.0.0.1:50000
+        '';
+      };
+
+      "masto.f.localhost.thotep.net" = {
+        listenAddresses = [ "100.103.65.77" ];
+        useACMEHost = "localhost.thotep.net";
+        logFormat = ''
+          output stdout
+        '';
+        extraConfig = ''
+          handle /api/v1/streaming* {
+            reverse_proxy 127.0.0.1:50021
+          }
+
+          handle {
+            reverse_proxy 127.0.0.1:50020
+          }
+        '';
+      };
+    };
+  };
+}
+```
 
 ## Directory structure
 
-- {repo}
-  - bin/ - the scripts directory
+- {rootdir of this repo}/
+  - bin/ - the helper scripts directory
   - app/
     - {appname}/ - the application code of fediverse softwares
   - data/
-    - {appname}/
-      - env - `env` for application
-      - db/ - the datadir for database
+    - {appname}/ - the data directory for fediverse softwares
   - {appname}.yaml - The `process-compose.ymal` for {appname}
 
 ## How to setup fediverse softwares
 
 ### GoToSocial
 
-- In this configuration, use `sqlite3` as db, and store media files to local dir
+In this configuration, use `sqlite3` as db, and store media files to local dir
 
 ```bash
 # Checkout source code to `app/gotosocial` directory.
@@ -45,6 +99,8 @@ $ bin/run gotosocial gotosocial admin promote --user foo
 ```
 
 ### Mastodon
+
+This configuration uses postgres as database, official redis.
 
 #### Setup Postgres by user permissions
 
