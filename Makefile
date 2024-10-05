@@ -6,6 +6,9 @@ all:
 shell:
 	@nix develop
 
+up:
+	@bash bin/tmuxup
+
 .PHONY: gotosocial mastodon
 
 gotosocial:
