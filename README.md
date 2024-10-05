@@ -43,3 +43,72 @@ $ bin/run gotosocial gotosocial admin create --email foo@example.com --user foo 
 $ bin/run gotosocial gotosocial admin confirm --user foo
 $ bin/run gotosocial gotosocial admin promote --user foo
 ```
+
+### Mastodon
+
+#### Setup Postgres by user permissions
+
+```bash
+# Enter to development bash shell
+$ nix develop
+
+# Initialize database directory.
+$ cd data/mastodon/db
+$ nix shell nixpkgs#postgresql --command initdb -U $(id -u -n) .
+
+# Edit some configurations.
+# In this environment requires to change these settings:
+# ---
+# external_pid_file = '/run/user/1000/postgres/mastodon/pid' # for send `kill -SIGTERM` to postres instance
+# port = 50029 # postgres server running on user permissions, so we should use to non-reserved port
+# unix_socket_directories = '/run/user/1000/postgres/mastodon' # use user `/run` directory as socket dir
+# ---
+$ nvim postgresql.conf
+
+# Do testing for database is able to running by user permissions
+$ nix shell nixpkgs#postgresql --command pg_ctl -D . start
+
+# Setup system databse
+$ nix shell nixpkgs#postgresql --command createdb -h 127.0.0.1 -p 50029 $(id -u -n)
+```
+
+### Setup mastodon
+
+```bash
+# Launch postgres and redis servers
+# These server is required by mastodon setup
+$ process-compose -e data/mastodon/env -f mastodon.yaml up postgresql redis
+
+# Checkout mastodon source code to `app/mastodon`
+$ git clone https://github.com/mastodon/mastodon app/mastodon
+
+# Manual install of mastodon
+$ cd app/mastodon
+$ bundle config deployment 'true'
+$ bundle config without 'development test'
+$ bundle install -j$(nproc --all --ignore 1)
+$ yarn install --pure-lockfile
+
+# Initialize mastodon configurations
+$ RAILS_ENV=production bundle exec rake mastodon:setup
+
+# Edit more configurations to .env.production
+# We should add these:
+# ---
+# AUTHORIZED_FETCH=false
+# DEFAULT_LOCAL=ja # change to your language
+# RAILS_ENV=production
+# RAILS_SERVE_STATIC_FILES=true
+# NODE_ENV=production
+# TRUSTED_PROXY_IP=127.0.0.1,100.64.0.0/10
+# PORT=50020
+# ALLOWED_PRIVATE_ADDRESSES=100.64.0.0/10
+# ---
+$ nvim .env.production
+
+# Add user as admin
+$ rails_env=production ./bin/tootctl accounts create $(id -u -n) --email "$(id -u -n)@example.com"
+$ rails_env=production ./bin/tootctl accounts modify $(id -u -n) --confirm
+$ rails_env=production ./bin/tootctl accounts modify $(id -u -n) --approve
+$ rails_env=production ./bin/tootctl accounts modify $(id -u -n) --role Admin
+```

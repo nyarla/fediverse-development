@@ -1,0 +1,30 @@
+version: "0.5"
+is_strict: true
+
+processes:
+  postgresql:
+    working_dir: "data/mastodon/db"
+    command: |
+      test -d /run/user/1000/postgres/mastodon || mkdir -p /run/user/1000/postgres/mastodon
+      nix shell nixpkgs#postgresql --command pg_ctl -D . start
+    shutdown:
+      command: |
+        kill -SIGTERM $(cat /run/user/1000/postgres/mastodon/pid)
+  redis:
+    working_dir: "data/mastodon/redis"
+    command: "redis-server --port 50028"
+
+  http:
+    working_dir: "app/mastodon"
+    command: |
+      bundle exec puma -C config/puma.rb
+
+  sidekiq:
+    working_dir: "app/mastodon"
+    command: |
+      bundle exec sidekiq -c 25
+
+  streaming:
+    working_dir: "app/mastodon"
+    command: |
+      env NODE_ENV=production PORT=50021 node ./streaming
