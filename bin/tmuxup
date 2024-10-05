@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+# launch gotosocial
+tmux new-window
+tmux send-keys 'make shell' C-m
+tmux send-keys 'make gotosocial' C-m
+
+# launch mastodon
+tmux new-window
+tmux send-keys 'make shell' C-m
+tmux send-keys 'make mastodon' C-m
+
+# return back to console
+tmux select-window -t 1
