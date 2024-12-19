@@ -10,5 +10,10 @@ tmux new-window
 tmux send-keys 'make shell' C-m
 tmux send-keys 'make mastodon' C-m
 
+# launch mastodon
+tmux new-window
+tmux send-keys 'make shell' C-m
+tmux send-keys 'make misskey' C-m
+
 # return back to console
 tmux select-window -t 1

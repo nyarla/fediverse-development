@@ -55,7 +55,7 @@ I use these NixOS configurations to setup this environment:
           }
 
           handle {
-            reverse_proxy 127.0.0.1:50020
+reverse_proxy 127.0.0.1:50020
           }
         '';
       };
@@ -167,4 +167,58 @@ $ rails_env=production ./bin/tootctl accounts create $(id -u -n) --email "$(id -
 $ rails_env=production ./bin/tootctl accounts modify $(id -u -n) --confirm
 $ rails_env=production ./bin/tootctl accounts modify $(id -u -n) --approve
 $ rails_env=production ./bin/tootctl accounts modify $(id -u -n) --role Admin
+```
+
+## Misskey
+
+### Setup postgres by user permissions
+
+This section is same as mastodon's setup, but listen port is channge from `50029` to `50039`.
+
+And doing the additional steps as follow:
+
+```bash
+# Run postgres sql shell
+$ nix shell nixpkgs#postgresql --command psql -U $(id -u -n) -h localhost -p 50039
+
+uname=# CREATE ROLE misskey LOGIN PASSWORD 'XXXXXXXXXX';
+uname=# CREATE DATABASE misskey OWNER misskey;
+uname=# \q
+```
+
+### Setup Misskey
+
+```bash
+# Checkout misskey source code to `app/misskey`
+$ git clone https://github.com/misskey-dev/misskey.git app/misskey
+
+# Edit `.config/default.yml`
+# Change settings like as:
+# ---
+# url: https://misskey.f.localhost.thotep.net/
+# port: 50030
+# db:
+#   host: localhost
+#   port: 50039
+#   db: misskey
+#   user: misskey
+#   pass: XXXXXXXXXX
+# redis:
+#   host: localhost
+#   port: 50038
+# allowedPrivateNetworks: [
+#   '127.0.0.1/32',
+#   '100.64.0.0/10'
+# ]
+# ---
+$ nvim .config/default.yml
+
+# Build Misskey application
+$ nix develop
+$ NODE_ENV=production pnpm i
+$ NODE_ENV=production pnpm run build
+
+# Setup data stores
+$ process-compose -f misskey.yaml up postgres redis
+$ NODE_ENV=production pnpm run init
 ```

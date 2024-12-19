@@ -28,6 +28,7 @@
                 libyaml
                 libyaml.dev
                 nodePackages.nodejs
+                nodePackages.pnpm
                 nodePackages.yarn
                 openssl.dev
                 pkg-config
