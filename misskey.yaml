@@ -1,0 +1,22 @@
+version: "0.5"
+is_strict: true
+
+processes:
+  postgresql:
+    working_dir: "data/misskey/db"
+    command: |
+      test -d /run/user/1000/postgres/misskey || mkdir -p /run/user/1000/postgres/misskey
+      nix shell nixpkgs#postgresql --command pg_ctl -D . start
+    shutdown:
+      command: |
+        kill -SIGTERM $(cat /run/user/1000/postgres/misskey/pid)
+  redis:
+    working_dir: "data/misskey/redis"
+    command: "redis-server --port 50038"
+
+  http:
+    working_dir: "app/misskey"
+    command: "env NODE_ENV=production pnpm run start"
+    depends_on:
+      postgresql:
+      redis:
