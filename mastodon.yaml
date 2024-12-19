@@ -15,16 +15,25 @@ processes:
     command: "redis-server --port 50028"
 
   http:
+    depends_on:
+      postgresql:
+      redis:
     working_dir: "app/mastodon"
     command: |
       bundle exec puma -C config/puma.rb
 
   sidekiq:
+    depends_on:
+      postgresql:
+      redis:
     working_dir: "app/mastodon"
     command: |
       bundle exec sidekiq -c 25
 
   streaming:
+    depends_on:
+      postgresql:
+      redis:
     working_dir: "app/mastodon"
     command: |
       env NODE_ENV=production PORT=50021 node ./streaming
