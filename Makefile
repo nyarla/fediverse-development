@@ -16,3 +16,6 @@ gotosocial:
 
 mastodon:
 	@process-compose -e app/mastodon/.env.production -f mastodon.yaml -p 8002
+
+misskey:
+	@process-compose -f misskey.yaml -p 8003
